@@ -1,11 +1,11 @@
 // ==UserScript==
-// @name         Simple Reverse Geocoding Script v7
-// @namespace    http://tampermonkey.net/
-// @version      7
-// @description  try to take over the world!
-// @author       You
+// @name         Simple Reverse Geocoding Script v7.1
+// @description  Simple reverse geocoding script for Geoguessr players. 
+// @namespace    geoguessr scripts 
+// @version      7.1
+// @author       echandler
 // @include      /^(https?)?(\:)?(\/\/)?([^\/]*\.)?geoguessr\.com($|\/.*)/
-// @icon         https://wwvim linux copy to clipboardvim linux copy to clipboardfavicons?domain=wikipedia.org
+// @downloadURL  https://github.com/echandler/Simple-Reverse-Geocoding-Script/raw/main/reverseGeocodingScript.user.js
 // ==/UserScript==
 
 var usw = window;
