@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Simple Reverse Geocoding Script v7.3
+// @name         Simple Reverse Geocoding Script v7.4
 // @description  Simple reverse geocoding script for Geoguessr players. 
 // @namespace    geoguessr scripts 
-// @version      7.3
+// @version      7.4
 // @author       echandler
 // @include      /^(https?)?(\:)?(\/\/)?([^\/]*\.)?geoguessr\.com($|\/.*)/
 // @downloadURL  https://github.com/echandler/Simple-Reverse-Geocoding-Script/raw/main/reverseGeocodingScript.user.js
@@ -418,8 +418,6 @@ async function init(){
     if (!doUpdate && usw.sgs.country_code_to_name_index?.result?.json){
 
         usw.sgs.country_code_to_name_index = JSON.parse(usw.sgs.country_code_to_name_index.result.json);
-
-        compilePolygons(usw.sgs.country_code_to_name_index);
 
         done++;
 
