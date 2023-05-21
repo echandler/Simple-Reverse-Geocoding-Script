@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Simple Reverse Geocoding Script v7.2
+// @name         Simple Reverse Geocoding Script v7.3
 // @description  Simple reverse geocoding script for Geoguessr players. 
 // @namespace    geoguessr scripts 
-// @version      7.2
+// @version      7.3
 // @author       echandler
 // @include      /^(https?)?(\:)?(\/\/)?([^\/]*\.)?geoguessr\.com($|\/.*)/
 // @downloadURL  https://github.com/echandler/Simple-Reverse-Geocoding-Script/raw/main/reverseGeocodingScript.user.js
@@ -13,66 +13,16 @@ if (window.unsafeWindow){
     usw = unsafeWindow;
 }
 
-usw.sgs = {}; 
+usw.sgs = {GM_info : GM_info};
 
-// https://gadm.org/download_country.html
-// I downloaded these country polygons from the geoguessr website, it looks like they got them from gadm.org.
-usw.sgs.ggPolygons = null;
+let ls = localStorage["sgs"];
 
-usw.sgs.countryCentroids = null; 
-
-usw.sgs.countryFlags = null;
-
-async function db(type, id, data){
-            return new Promise(function(res, reg){
-                var request = indexedDB.open('sgs', 1);
-
-                request.onupgradeneeded = async function(){
-                    let db = request.result;
-                    let store = db.createObjectStore("sgs_object_store", {keyPath:"id"});
-                    store.createIndex("sgs_index", ["json"], {unique: false});
-                }
-
-                request.onsuccess = async function(){
-                    const db = request.result;
-                    const transact = db.transaction("sgs_object_store", "readwrite");
-                    const store = transact.objectStore("sgs_object_store");
-
-                    if (type == "get"){
-                        let getIt = store.get(+id);
-                        getIt.onsuccess = function(){
-                            res(getIt);
-
-                        db.close();
-                        }
-                        getIt.onerror = function(){
-                            res(getIt);
-                        db.close();
-                        }
-                      //  res(store.get(id));
-
-                        return;
-                    }
-
-                    if (type == 'put'){
-                        store.put({id: id, json:data})
-                        res();
-                        db.close();
-                        return;
-                    }
-                    if (type == 'add'){
-                        store.add({id: id, json: data});
-                        db.close();
-                    }
-                }
-
-                request.onerror = function(){
-                    db.close();
-                }
-
-            });
-        };
-
+if (!ls){
+   ls = { version: parseFloat(GM_info.script.version) };
+   localStorage["sgs"] = JSON.stringify(ls);
+} else {
+    ls = JSON.parse(ls);
+}
 
 usw.sgs.pointInPolygon = function(y,x, poly){
         let num = poly.length;
@@ -198,8 +148,6 @@ usw.sgs.reverse = function({lat, lng}){
     };      
 }
 
-usw.sgs.country_code_to_name_index = null;
-
 usw.sgs.admin_country_index = { AF: 'AF', AX: 'FI', AL: 'AL', DZ: 'DZ', AS: 'US', AD: 'AD', AO: 'AO',
                     AI: 'GB', AQ: 'AQ', AG: 'AG', AR: 'AR', AM: 'AM', AW: 'NL', AU: 'AU',
                     AT: 'AT', AZ: 'AZ', BS: 'BS', BH: 'BH', BD: 'BD', BB: 'BB', BY: 'BY',
@@ -266,8 +214,6 @@ function compilePolygons(ggPolygons){
                                 "my":_t['my'],"mz":_t['mz'],"na":_t['na'],"nc":_t['nc'],"ng":_t['ng'],"ni":_t['ni'],"nl":_t['nl'],"pg":_t['pg'],"pt":_t['pt'],"pw":_t['pw'],"py":_t['py'],"qa":_t['qa'],"ro":_t['ro'],"ph":_t['ph'],"pk":_t['pk'],"pl":_t['pl'],"pm":_t['pm'],"pn":_t['pn'],"pr":_t['pr'],"rs":_t['rs'],"th":_t['th'],"tj":_t['tj'],"tk":_t['tk'],"tl":_t['tl'],"ru":_t['ru'],"rw":_t['rw'],"sa":_t['sa'],"tf":_t['tf'],"tg":_t['tg'],"ss":_t['ss'],"st":_t['st'],"sv":_t['sv'],"sx":_t['sx'],"sy":_t['sy'],"sz":_t['sz'],"tc":_t['tc'],"td":_t['td'],"sc":_t['sc'],"sb":_t['sb'],"sd":_t['sd'],"se":_t['se'],"sg":_t['sg'],"sh":_t['sh'],"si":_t['si'],"sk":_t['sk'],"sl":_t['sl'],"sn":_t['sn'],"tt":_t['tt'],"tv":_t['tv'],"tr":_t['tr'],"tz":_t['tz'],"tm":_t['tm'],"tn":_t['tn'],"to":_t['to'],"so":_t['so'],"sr":_t['sr'],"sj":_t['sj'],"ua":_t['ua'],"ug":_t['ug'],"gb":_t['gb'],"um":_t['um'],"ye":_t['ye'],"za":_t['za'],"zm":_t['zm'],"zw":_t['zw'],"us":_t['us'],"uy":_t['uy'],"uz":_t['uz'],"vc":_t['vc'],"ve":_t['ve'],"vg":_t['vg'],"vi":_t['vi'],"vu":_t['vu'],"wf":_t['wf'],"vn":_t['vn'],"ws":_t['ws']};
 }
 
-usw.sgs.rawBorders = null;
-
 let _customBorders = null;
 
 function customBorders(rawBorders){
@@ -275,12 +221,68 @@ function customBorders(rawBorders){
     usw.sgs.customBorders = eval("t="+_customBorders.replace(/\\n.*?'/g, "'").replace(/\\t.*?'/g, "'").replace(/\\n.*?}/g, "}"));
 }
 
+async function db(type, id, data){
+            return new Promise(function(res, reg){
+                var request = indexedDB.open('sgs', 1);
+
+                request.onupgradeneeded = async function(){
+                    let db = request.result;
+                    let store = db.createObjectStore("sgs_object_store", {keyPath:"id"});
+                    store.createIndex("sgs_index", ["json"], {unique: false});
+                }
+
+                request.onsuccess = async function(){
+                    const db = request.result;
+                    const transact = db.transaction("sgs_object_store", "readwrite");
+                    const store = transact.objectStore("sgs_object_store");
+
+                    if (type == "get"){
+                        let getIt = store.get(+id);
+                        getIt.onsuccess = function(){
+                            res(getIt);
+
+                        db.close();
+                        }
+                        getIt.onerror = function(){
+                            res(getIt);
+                        db.close();
+                        }
+                      //  res(store.get(id));
+
+                        return;
+                    }
+
+                    if (type == 'put'){
+                        store.put({id: id, json:data})
+                        res();
+                        db.close();
+                        return;
+                    }
+                    if (type == 'add'){
+                        store.add({id: id, json: data});
+                        db.close();
+                    }
+                }
+
+                request.onerror = function(){
+                    db.close();
+                }
+
+            });
+        };
+
 async function init(){
     let done = 0;
+    let doUpdate = parseFloat(GM_info.script.version) !== ls.version;
+
+    if (doUpdate){
+        ls.version = parseFloat(GM_info.script.version);
+        localStorage["sgs"] = JSON.stringify(ls);
+    }
 
     usw.sgs.countryFlags = await db('get', 0);
 
-    if (usw.sgs.countryFlags?.result?.json){
+    if (!doUpdate && usw.sgs.countryFlags?.result?.json){
 
         usw.sgs.countryFlags = JSON.parse(usw.sgs.countryFlags.result.json);
 
@@ -305,7 +307,7 @@ async function init(){
 
     usw.sgs.rawBorders = await db('get', 1);
 
-    if (usw.sgs.rawBorders?.result?.json){
+    if (!doUpdate && usw.sgs.rawBorders?.result?.json){
 
         usw.sgs.rawBorders = JSON.parse(usw.sgs.rawBorders.result.json);
 
@@ -330,7 +332,7 @@ async function init(){
 
     _customBorders = await db('get', 2);
 
-    if (_customBorders?.result?.json){
+    if (!doUpdate && _customBorders?.result?.json){
 
         _customBorders = JSON.parse(_customBorders.result.json);
 
@@ -359,7 +361,7 @@ async function init(){
 
     usw.sgs.countryCentroids = await db('get', 3);
 
-    if (usw.sgs.countryCentroids?.result?.json){
+    if (!doUpdate && usw.sgs.countryCentroids?.result?.json){
 
         usw.sgs.countryCentroids = JSON.parse(usw.sgs.countryCentroids.result.json);
 
@@ -384,7 +386,7 @@ async function init(){
 
     usw.sgs.ggPolygons = await db('get', 4);
 
-    if (usw.sgs.ggPolygons?.result?.json){
+    if (!doUpdate && usw.sgs.ggPolygons?.result?.json){
 
         usw.sgs.ggPolygons = JSON.parse(usw.sgs.ggPolygons.result.json);
 
@@ -413,7 +415,7 @@ async function init(){
 
     usw.sgs.country_code_to_name_index = await db('get', 5);
 
-    if (usw.sgs.country_code_to_name_index?.result?.json){
+    if (!doUpdate && usw.sgs.country_code_to_name_index?.result?.json){
 
         usw.sgs.country_code_to_name_index = JSON.parse(usw.sgs.country_code_to_name_index.result.json);
 
@@ -440,9 +442,14 @@ async function init(){
 
     let int = setInterval(function(){
         if (done !== 6) return;
+
         clearInterval(int);
+
         usw.sgs.compileBorders();
+
     }, 100);
 }
+
 setTimeout(init, 1000);
+
 
