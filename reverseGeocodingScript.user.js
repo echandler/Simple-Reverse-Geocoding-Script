@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Simple Reverse Geocoding Script v7.4
+// @name         Simple Reverse Geocoding Script v7.5
 // @description  Simple reverse geocoding script for Geoguessr players. 
 // @namespace    geoguessr scripts 
-// @version      7.4
+// @version      7.5
 // @author       echandler
 // @include      /^(https?)?(\:)?(\/\/)?([^\/]*\.)?geoguessr\.com($|\/.*)/
 // @downloadURL  https://github.com/echandler/Simple-Reverse-Geocoding-Script/raw/main/reverseGeocodingScript.user.js
@@ -13,7 +13,10 @@ if (window.unsafeWindow){
     usw = unsafeWindow;
 }
 
+let pending = [];
+
 usw.sgs = {GM_info : GM_info};
+usw.sgs.ready = false;
 
 let ls = localStorage["sgs"];
 
@@ -117,13 +120,22 @@ usw.sgs.compileBorders = function(){
                    }
                 }
              }
-        }        
+        } 
         //console.log(countries[name])
         usw.sgs.compiledPolygons[countries[name]] = coords;
     }
 }
 
-usw.sgs.reverse = function({lat, lng}){
+usw.sgs.reverse = async function({lat, lng}){
+    if (usw.sgs.ready === false){
+
+       return new Promise((res)=>{
+
+           pending.push(()=> res(usw.sgs.reverse({lat, lng})));
+
+       });
+    }
+
     let countryCode = usw.sgs.findIt(lat, lng);
 
     if (!countryCode){
@@ -133,11 +145,11 @@ usw.sgs.reverse = function({lat, lng}){
     countryCode = countryCode.toUpperCase();
 
     let country_name = usw.sgs.country_code_to_name_index[countryCode];
-    let admin_country_code = usw.sgs.admin_country_index[countryCode];  
+    let admin_country_code = usw.sgs.admin_country_index[countryCode];
     let admin_country_name = usw.sgs.country_code_to_name_index[admin_country_code];
 
     return {
-        lat, 
+        lat,
         lng,
         country:{
             country_code: countryCode,
@@ -145,7 +157,7 @@ usw.sgs.reverse = function({lat, lng}){
             admin_country_code: admin_country_code,
             admin_country_name: admin_country_name,
         },
-    };      
+    };
 }
 
 usw.sgs.admin_country_index = { AF: 'AF', AX: 'FI', AL: 'AL', DZ: 'DZ', AS: 'US', AD: 'AD', AO: 'AO',
@@ -445,9 +457,11 @@ async function init(){
 
         usw.sgs.compileBorders();
 
-    }, 100);
+        usw.sgs.ready = true;
+
+        pending.forEach((fn)=> fn());
+        pending = [];
+    }, 10);
 }
 
-setTimeout(init, 1000);
-
-
+init();
