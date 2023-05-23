@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Simple Reverse Geocoding Script v7.5
+// @name         Simple Reverse Geocoding Script v7.6
 // @description  Simple reverse geocoding script for Geoguessr players. 
 // @namespace    geoguessr scripts 
-// @version      7.5
+// @version      7.6
 // @author       echandler
 // @include      /^(https?)?(\:)?(\/\/)?([^\/]*\.)?geoguessr\.com($|\/.*)/
 // @downloadURL  https://github.com/echandler/Simple-Reverse-Geocoding-Script/raw/main/reverseGeocodingScript.user.js
@@ -364,10 +364,25 @@ async function init(){
 
             db('put', 2, JSON.stringify(_customBorders));
 
-            customBorders(usw.sgs.rawBorders);
+            if (!usw.sgs.rawBorders){
 
-            done++;
+                let waitingForRawBorders = setInterval(()=>{
 
+                    if(!usw.sgs.rawBorders) return;
+
+                    clearInterval(waitingForRawBorders);
+
+                    customBorders(usw.sgs.rawBorders);
+
+                    done++;
+
+                }, 100);
+
+            } else {
+
+                done++;
+
+            }
         });
     }
 
