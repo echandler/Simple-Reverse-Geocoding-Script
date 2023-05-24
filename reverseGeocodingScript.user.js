@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Simple Reverse Geocoding Script v7.7
+// @name         Simple Reverse Geocoding Script v7.8
 // @description  Simple reverse geocoding script for Geoguessr players. 
 // @namespace    geoguessr scripts 
-// @version      7.7
+// @version      7.8
 // @author       echandler
 // @include      /^(https?)?(\:)?(\/\/)?([^\/]*\.)?geoguessr\.com($|\/.*)/
 // @downloadURL  https://github.com/echandler/Simple-Reverse-Geocoding-Script/raw/main/reverseGeocodingScript.user.js
@@ -97,11 +97,8 @@ usw.sgs.findIt = function($y, $x){
 			return
 		}
 		let len = t[tt[n]].length;
-		// console.log(tt[n]); 
 		for (let j = 0; j < len; j++){
-			// console.log('hi');
 			if(pip($y, $x, t[tt[n]][j]) == true){
-				// console.log(tt[n]);
 				return tt[n];
 			};
 		}
@@ -122,7 +119,7 @@ usw.sgs.compileBorders = function(){
             coords.push([]);
             for (let border = 0; border < country[borders].length; border++){
                 let _border = country[borders][border][0];
-                //console.log()
+
                 if (country[borders][border][1] !== 'r'){
                    coords[borders] = coords[borders].concat(_border); 
                 } else {
@@ -133,7 +130,7 @@ usw.sgs.compileBorders = function(){
                 }
              }
         } 
-        //console.log(countries[name])
+
         usw.sgs.compiledPolygons[countries[name]] = coords;
     }
 }
@@ -378,7 +375,7 @@ async function init(){
 
             let waitingForRawBorders = setInterval(()=>{
 
-                if(!usw.sgs.rawBorders) return;
+                if(!Array.isArray(usw?.sgs?.rawBorders)) return;
 
                 clearInterval(waitingForRawBorders);
 
