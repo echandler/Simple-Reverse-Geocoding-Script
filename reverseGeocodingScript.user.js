@@ -15,7 +15,19 @@ if (window.unsafeWindow){
 
 let pending = [];
 
-usw.sgs = {GM_info : GM_info};
+usw.sgs = {};
+
+if (window.GM_info){ 
+    usw.sgs = {GM_info : window.GM_info};
+} else {
+    window.GM_info = {
+        script: {
+            version: "7.7"
+        }
+    };
+    usw.sgs = {GM_info : window.GM_info};
+}
+
 usw.sgs.ready = false;
 
 let ls = localStorage["sgs"];

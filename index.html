@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Reverse Server Map Tool</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <!-- jsFiddle will insert css and js -->
+<style> 
+#map {
+  height: 100%;
+}
+
+/* Optional: Makes the sample page fill the window. */
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+
+</style>
+  </head>
+  <body>
+    <div id="map"></div>
+
+    <!-- Async script executes immediately and must be after any DOM elements used in callback. -->
+    <script
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg&callback=initMap&v=weekly&channel=2"
+    ></script>
+    <script
+      src="reverse geo lookup version 5 pretty country outlines.js"
+    ></script>
+    <script
+      src="reverseGeocodingScript.user.js"
+    ></script>
+<script>
+
+// This example creates a simple polygon representing the Bermuda Triangle.
+function initMap() {
+        window.map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 3, //5,
+                center: { lat: 12.038849970935235, lng: -20.038507812500008 }, //{ lat: 24.886, lng: -70.268 },
+                mapTypeId: "roadmap",
+                gestureHandling: "greedy",
+        });
+        // Define the LatLng coordinates for the polygon's path.
+        var lat = 1.251458; -35.202066; 48.16325;
+        var lng = 108.594215; 144.912484; -122.374927;
+        let svCoverage = new google.maps.StreetViewCoverageLayer();
+	svCoverage.setMap(null);        
+
+      //  document.body.addEventListener('keydown', function(evt){
+	setTimeout(function(){
+		document.querySelector('.gm-svpc').addEventListener('click', function(evt){
+
+		    // if (evt.key !== 'g') return;
+
+		     if (svCoverage.getMap() === null){
+			svCoverage.setMap(map);        
+		     } else {
+			svCoverage.setMap(null);        
+		     }
+		});
+	}, 1000);
+
+        window.map.addListener("click", async function (e) {
+                if (e.domEvent.shiftKey === false) return;
+                let cont = document.createElement("main");
+                let art1 = document.createElement("article");
+                art1.innerHTML = "Waiting...";
+
+                let art2 = document.createElement("article");
+                art2.innerHTML = e.latLng.lat() + "," + e.latLng.lng();
+
+                cont.appendChild(art1);
+                cont.appendChild(art2);
+
+                const infowindow = new google.maps.InfoWindow({
+                        content: cont,
+                        ariaLabel: "Uluru",
+                });
+                infowindow.open(window.map);
+                infowindow.setPosition({ lat: e.latLng.lat(), lng: e.latLng.lng() });
+
+                art1.innerHTML = await getUserAsync([e.latLng.lat(), e.latLng.lng()]);
+
+                async function getUserAsync(xy) {
+                        if (location[0] <= -85.05) {
+                                return "AQ";
+                        }
+
+                        let url = `https://nominatim.openstreetmap.org/reverse.php?lat=${xy[0]}&lon=${xy[1]}&zoom=21&format=jsonv2&accept-language=en`;
+                        return fetch(url)
+                                .then((res) => res.json())
+                                .then((json) => {
+                                        return json.address.country_code.toUpperCase();
+                                })
+                                .catch((error) => {
+                                        console.error(error);
+                                });
+                }
+        });
+
+        const triangleCoords =
+                //  [
+                //   { lat:lat-7 , lng:lng+7 },
+                //   { lat:lat+7 , lng:lng+7  },
+                //   { lat:lat+7 , lng:lng-7  },
+                //   { lat:lat-7 , lng:lng-7 },
+                // ];
+
+                [
+                        { lat: 25.774, lng: -80.19 },
+                        { lat: 18.466, lng: -66.118 },
+                        { lat: 32.321, lng: -64.757 },
+                        { lat: 25.774, lng: -80.19 },
+                ];
+        // Construct the polygon.
+        const flightPath = new google.maps.Polyline({
+                path: triangleCoords,
+                strokeColor: "#FF0000",
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                editable: true,
+        });
+
+        flightPath.addListener("rightclick", function (event) {
+                //console.log('hi', event);
+                if (event.vertex !== undefined) {
+                        //
+                        var path = this.getPath();
+                        //   if(path.getLength() > -1){
+                        path.removeAt(event.vertex);
+                }
+                //   }
+                // }
+        });
+        console.log(flightPath);
+
+        window._f = flightPath;
+        window._fs = [];
+        flightPath.setMap(map);
+}
+
+initMap();
+
+function makeMenu() {
+        if (sgs.ready === false){
+             setTimeout(makeMenu, 1000);
+             return;
+        }
+
+        let container = document.createElement("div");
+        container.style.cssText = `position: absolute; top: 100px; left: 10px; padding: 10px; background: white; max-height: 50%; overflow-y: scroll;overflow-x: hidden;`;
+
+        let header = document.createElement("div");
+        header.style.cssText = `height: 1em; cursor: pointer;`;
+        header.addEventListener("click", () => {
+                header.innerText = "";
+                container.parentElement.removeChild(container);
+                makeMenu();
+        });
+
+        let main = document.createElement("div");
+
+        container.appendChild(header);
+        container.appendChild(main);
+        document.body.appendChild(container);
+
+        let countries = Object.keys(sgs.compiledPolygons).sort();
+        countries.forEach((c) => {
+                let item = document.createElement("div");
+                let _x = sgs.rawBorders;
+                item.style.cssText = `cursor: pointer; margin: 10px;`;
+                item.innerText = c;
+                if (_x[c]) {
+                        item.style.color = "blue";
+                }
+
+                item.addEventListener("click", () => {
+                        main.innerHTML = "";
+                        header.innerHTML = `<span style=" font-size: 0.8em; margin-right: 10px; color: grey;">Click to go back</span>
+				            <span style="font-weight:bold; font-size: 1.1em;">${c}</span>`;
+
+                        if (_x[c]) {
+                                _x[c].forEach((coords, index) => {
+                                        makeItem(coords, index, c);
+                                });
+                        }
+
+                        let blankItem = makeItem([], _x[c]?.length || 0, c);
+                        
+                        let lastIndex = _x[c]?.length? _x[c]?.length + 1: 1;
+                        let AllCoodsItem = makeItem(sgs.compiledPolygons[c], lastIndex, c); 
+                });
+                main.appendChild(item);
+        });
+
+        function makeItem(coords, index, countryCode) {
+                let cont = document.createElement("div");
+                cont.classList.add("cont");
+                let num = document.createElement("span");
+                num.innerText = index;
+
+                let item = document.createElement("input");
+                item.style.cssText = `cursor: pointer; margin: 10px; width: 15em; padding: 5px;display:inline;`;
+                item.value = JSON.stringify(coords);
+                item._coords = coords;
+                //	main.appendChild(item);
+
+                item.addEventListener("click", (e) => {
+                        item.value = JSON.stringify(item._coords);
+
+                        backup.saveToLocalStorage(item);
+                        if (_f) {
+                                _f.setMap(null);
+                        }
+
+                        if (_fs){
+                           _fs.forEach(_f => _f.setMap(null));
+                           _fs = [];
+                        }
+
+                        if (item._coords.length !== 0 && Array.isArray(item._coords[0][0])){
+                            let mainArray = item._coords;
+
+                            mainArray.forEach(coords =>{
+                                console.log('hi'); 
+                                makeBorder(coords, (poly) => { /*blank callback*/ }, true);
+                                _fs.push(_f);
+                            });
+
+                        } else if (item._coords.length !== 0) {
+                                makeBorder(item._coords, (poly) => {
+                                        item._coords = makeCoords(poly);
+                                        item.value = JSON.stringify(item._coords);
+                                        item.style.border = "2px solid red";
+                                });
+                        } else {
+                                let center = map.getCenter().toJSON();
+                                makeBorder(
+                                        [
+                                                [center.lng, center.lat],
+                                                [center.lng + 1, center.lat],
+                                        ],
+                                        (poly) => {
+                                                if (item._coords.length == 0) {
+                                                        makeItem([], -1, countryCode);
+                                                }
+
+                                                item._coords = makeCoords(poly);
+                                                item.value = JSON.stringify(item._coords);
+                                                item.style.border = "2px solid red";
+                                        }
+                                );
+                        }
+                });
+
+                cont.appendChild(num);
+                cont.appendChild(item);
+                main.appendChild(cont);
+
+                return item;
+        }
+}
+makeMenu();
+
+let backup = {
+        interval: null,
+        saveToLocalStorage: function (input) {
+                clearInterval(this.interval);
+                this.interval = setInterval(
+                        (input) => {
+                                localStorage.savedCoords = input.value;
+                        },
+                        5000,
+                        input
+                );
+        },
+};
+
+function makeBorder(_coords, changeCallBack, dontSetNull) {
+        let coords = _coords.map((c) => {
+                return { lat: c[1], lng: c[0] };
+        });
+        if (!dontSetNull && _f) {
+                _f.setMap(null);
+        }
+        _f = new google.maps.Polyline({
+                path: coords,
+                strokeColor: "#FF0000",
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                editable: true,
+        });
+
+        _f.addListener("click", function (event) {
+                if (event.vertex !== undefined) {
+                
+                        var path = this.getPath();
+                        let latLng = path.getAt(event.vertex);
+			console.log(event.vertex, latLng.lat(),',', latLng.lng() );
+		}
+        });
+
+        _f.addListener("mouseup", function (event) {
+                setTimeout(changeCallBack.bind(null, this), 100);
+        });
+        _f.addListener("rightclick", function (event) {
+                //console.log('hi', event);
+                if (event.vertex !== undefined) {
+                        //
+                        var path = this.getPath();
+                        //   if(path.getLength() > -1){
+                        path.removeAt(event.vertex);
+                }
+                //   }
+                // }
+        });
+
+        _f.setMap(map);
+}
+
+function makeCoords(poly) {
+        poly = poly ? poly : _f;
+        let w = [];
+
+        let p = poly.getPath().getArray(); //[getPathProp];
+
+        for (let n = 0; n < p.length; n++) {
+                // console.log("makeCoords", p[n], w)
+                if (p[n].length == 0) continue;
+                //w.push([]);
+                //  p[n].forEach(a => {
+                w.push([+p[n].lng().toFixed(6), +p[n].lat().toFixed(6)]);
+                //});
+        }
+        //_f.getPath().forEach(a => w.push([+(a.lng().toFixed(6)), +(a.lat().toFixed(6))]));
+        return w;
+}
+
+function makeGoogCoords(w) {
+        z = [];
+        if (Array.isArray(w[0][0])) {
+                console.log("hi");
+                for (let n = 0; n < w.length; n++) {
+                        z.push([]);
+                        if (w[n].length == 0) continue;
+                        w[n].forEach((c) => {
+                                console.log(c);
+                                z[z.length - 1].push({ lat: c[1], lng: c[0] });
+                        });
+                }
+        } else {
+                w.forEach((c) => {
+                        z.push({ lat: c[1], lng: c[0] });
+                });
+        }
+        return JSON.stringify(z);
+}
+
+function makeJson(c, t) {
+        let w = makeCoords();
+        if (w[0][0] != w[w.length - 1][0][0] || w[0][1] != w[w.length - 1][0][1]) {
+                w.push(w[0]);
+        }
+        console.log(JSON.stringify(w));
+        if (t[c][0][0] == "blob") {
+                t[c][0][1] = w;
+        } else {
+                t[c].unshift(["blob", w]);
+        }
+        return JSON.stringify(t);
+}
+
+
+</script>
+  </body>
+</html>
