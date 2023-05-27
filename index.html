@@ -134,7 +134,7 @@ function initMap() {
         });
         console.log(flightPath);
 
-        window._f = flightPath;
+        window.currentPolygon = flightPath;
         window._fs = [];
         flightPath.setMap(map);
 }
@@ -165,30 +165,30 @@ function makeMenu() {
         document.body.appendChild(container);
 
         let countries = Object.keys(sgs.compiledPolygons).sort();
-        countries.forEach((c) => {
+        countries.forEach((countryCode) => {
                 let item = document.createElement("div");
                 let _x = sgs.rawBorders;
                 item.style.cssText = `cursor: pointer; margin: 10px;`;
-                item.innerText = c;
-                if (_x[c]) {
+                item.innerText = countryCode;
+                if (_x[countryCode]) {
                         item.style.color = "blue";
                 }
 
                 item.addEventListener("click", () => {
                         main.innerHTML = "";
                         header.innerHTML = `<span style=" font-size: 0.8em; margin-right: 10px; color: grey;">Click to go back</span>
-				            <span style="font-weight:bold; font-size: 1.1em;">${c}</span>`;
+				            <span style="font-weight:bold; font-size: 1.1em;">${countryCode}</span>`;
 
-                        if (_x[c]) {
-                                _x[c].forEach((coords, index) => {
-                                        makeItem(coords, index, c);
+                        if (_x[countryCode]) {
+                                _x[countryCode].forEach((coords, index) => {
+                                        makeItem(coords, index, countryCode);
                                 });
                         }
 
-                        let blankItem = makeItem([], _x[c]?.length || 0, c);
+                        let blankItem = makeItem([], _x[countryCode]?.length || 0, countryCode);
                         
-                        let lastIndex = _x[c]?.length? _x[c]?.length + 1: 1;
-                        let AllCoodsItem = makeItem(sgs.compiledPolygons[c], lastIndex, c); 
+                        let lastIndex = _x[countryCode]?.length? _x[countryCode]?.length + 1: 1;
+                        let AllCoodsItem = makeItem(sgs.compiledPolygons[countryCode], lastIndex, countryCode); 
                 });
                 main.appendChild(item);
         });
@@ -204,27 +204,50 @@ function makeMenu() {
                 item.value = JSON.stringify(coords);
                 item._coords = coords;
                 //	main.appendChild(item);
+                
+                item.addEventListener('input', (e)=>{
+
+                        if (currentPolygon) {
+                                currentPolygon.setMap(null);
+                        }
+
+                        if (_fs){
+                            _fs.forEach(currentPolygon => currentPolygon.setMap(null));
+                            _fs = [];
+                        }
+
+                        item._coords = JSON.parse(item.value);   
+
+                       _makeBorders();  
+                });
 
                 item.addEventListener("click", (e) => {
                         item.value = JSON.stringify(item._coords);
 
                         backup.saveToLocalStorage(item);
-                        if (_f) {
-                                _f.setMap(null);
+                        if (currentPolygon) {
+                                currentPolygon.setMap(null);
                         }
 
                         if (_fs){
-                           _fs.forEach(_f => _f.setMap(null));
+                           _fs.forEach(currentPolygon => currentPolygon.setMap(null));
                            _fs = [];
                         }
+                        _makeBorders();
+                });
 
+                 function _makeBorders(){
                         if (item._coords.length !== 0 && Array.isArray(item._coords[0][0])){
                             let mainArray = item._coords;
 
-                            mainArray.forEach(coords =>{
-                                console.log('hi'); 
-                                makeBorder(coords, (poly) => { /*blank callback*/ }, true);
-                                _fs.push(_f);
+                            mainArray.forEach((coords, index, _array) =>{
+
+                                makeBorder(coords, (poly) => {
+                                        item._coords[index] = makeCoords(poly);
+                                        item.value = JSON.stringify(item._coords);
+                                        item.style.border = "2px solid red";
+                                } , true);
+                                _fs.push(currentPolygon);
                             });
 
                         } else if (item._coords.length !== 0) {
@@ -251,7 +274,7 @@ function makeMenu() {
                                         }
                                 );
                         }
-                });
+                }
 
                 cont.appendChild(num);
                 cont.appendChild(item);
@@ -280,10 +303,10 @@ function makeBorder(_coords, changeCallBack, dontSetNull) {
         let coords = _coords.map((c) => {
                 return { lat: c[1], lng: c[0] };
         });
-        if (!dontSetNull && _f) {
-                _f.setMap(null);
+        if (!dontSetNull && currentPolygon) {
+                currentPolygon.setMap(null);
         }
-        _f = new google.maps.Polyline({
+        currentPolygon = new google.maps.Polyline({
                 path: coords,
                 strokeColor: "#FF0000",
                 strokeOpacity: 0.8,
@@ -291,7 +314,7 @@ function makeBorder(_coords, changeCallBack, dontSetNull) {
                 editable: true,
         });
 
-        _f.addListener("click", function (event) {
+        currentPolygon.addListener("click", function (event) {
                 if (event.vertex !== undefined) {
                 
                         var path = this.getPath();
@@ -300,10 +323,10 @@ function makeBorder(_coords, changeCallBack, dontSetNull) {
 		}
         });
 
-        _f.addListener("mouseup", function (event) {
+        currentPolygon.addListener("mouseup", function (event) {
                 setTimeout(changeCallBack.bind(null, this), 100);
         });
-        _f.addListener("rightclick", function (event) {
+        currentPolygon.addListener("rightclick", function (event) {
                 //console.log('hi', event);
                 if (event.vertex !== undefined) {
                         //
@@ -315,11 +338,11 @@ function makeBorder(_coords, changeCallBack, dontSetNull) {
                 // }
         });
 
-        _f.setMap(map);
+        currentPolygon.setMap(map);
 }
 
 function makeCoords(poly) {
-        poly = poly ? poly : _f;
+        poly = poly ? poly : currentPolygon;
         let w = [];
 
         let p = poly.getPath().getArray(); //[getPathProp];
@@ -332,7 +355,7 @@ function makeCoords(poly) {
                 w.push([+p[n].lng().toFixed(6), +p[n].lat().toFixed(6)]);
                 //});
         }
-        //_f.getPath().forEach(a => w.push([+(a.lng().toFixed(6)), +(a.lat().toFixed(6))]));
+        //currentPolygon.getPath().forEach(a => w.push([+(a.lng().toFixed(6)), +(a.lat().toFixed(6))]));
         return w;
 }
 
