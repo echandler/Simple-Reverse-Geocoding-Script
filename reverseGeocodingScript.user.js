@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Simple Reverse Geocoding Script v7.9.1
+// @name         Simple Reverse Geocoding Script v8.0
 // @description  Simple reverse geocoding script for Geoguessr players. 
 // @namespace    geoguessr scripts 
-// @version      7.9.1
+// @version      8.0 
 // @author       echandler
 // @include      /^(https?)?(\:)?(\/\/)?([^\/]*\.)?geoguessr\.com($|\/.*)/
 // @downloadURL  https://github.com/echandler/Simple-Reverse-Geocoding-Script/raw/main/reverseGeocodingScript.user.js
@@ -65,6 +65,25 @@ usw.sgs.pointInPolygon = function(y,x, poly){
 
         return c;
 };
+
+usw.sgs.customFindIt = function($y, $x, coordObj){
+
+    let pip = usw.sgs.pointInPolygon;
+    let keys = Object.keys(coordObj);
+
+    for (let n = 0; n < keys.length; n++){
+
+        let len = coordObj[keys[n]].length;
+
+        for (let j = 0; j < len; j++){
+            if(pip($y, $x, coordObj[keys[n]][j]) == true){
+                return keys[n];
+            };
+        }
+    }
+
+    return false;
+}
 
 usw.sgs.findIt = function($y, $x){
 
@@ -133,6 +152,25 @@ usw.sgs.compileBorders = function(){
 
         usw.sgs.compiledPolygons[countries[name]] = coords;
     }
+}
+
+usw.sgs.customReverse = async function({lat, lng}, coordObj){
+    if (usw.sgs.ready === false){
+
+       return new Promise((res)=>{
+
+           pending.push(()=> res(usw.sgs.customReverse({lat, lng}, coordObj)));
+
+       });
+    }
+
+    let response = usw.sgs.customFindIt(lat, lng, coordObj);
+
+    if (!response){
+        return { error: "Key not found." };
+    }
+
+    return {lat, lng, response};
 }
 
 usw.sgs.reverse = async function({lat, lng}){
