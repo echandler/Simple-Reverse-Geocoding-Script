@@ -185,10 +185,20 @@ function makeMenu() {
                                 });
                         }
 
-                        let blankItem = makeItem([], _x[countryCode]?.length || 0, countryCode);
+                        //let blankItem = makeItem([], _x[countryCode]?.length || 0, countryCode);
                         
                         let lastIndex = _x[countryCode]?.length? _x[countryCode]?.length + 1: 1;
-                        let AllCoodsItem = makeItem(sgs.compiledPolygons[countryCode], lastIndex, countryCode); 
+                        let AllCoordsItem = makeItem(sgs.compiledPolygons[countryCode], lastIndex, countryCode); 
+
+                        let makeNew = document.createElement('div');
+                        makeNew.style.cursor = 'pointer';
+                        makeNew.innerText = "Click to make new polygon";
+
+                        makeNew.addEventListener('click', function(){
+                            makeItem([], -1, countryCode);
+                        }); 
+			
+                        main.appendChild(makeNew);
                 });
                 main.appendChild(item);
         });
