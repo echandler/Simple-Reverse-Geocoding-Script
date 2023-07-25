@@ -22,7 +22,7 @@ if (window.GM_info){
 } else {
     window.GM_info = {
         script: {
-            version: "7.9.1"
+            version: "8.1"
         }
     };
     usw.sgs = {GM_info : window.GM_info};
