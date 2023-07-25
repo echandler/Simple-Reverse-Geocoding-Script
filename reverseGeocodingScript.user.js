@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Simple Reverse Geocoding Script v8.0
+// @name         Simple Reverse Geocoding Script v8.1
 // @description  Simple reverse geocoding script for Geoguessr players. 
 // @namespace    geoguessr scripts 
-// @version      8.0 
+// @version      8.1 
 // @author       echandler
 // @include      /^(https?)?(\:)?(\/\/)?([^\/]*\.)?geoguessr\.com($|\/.*)/
 // @downloadURL  https://github.com/echandler/Simple-Reverse-Geocoding-Script/raw/main/reverseGeocodingScript.user.js
