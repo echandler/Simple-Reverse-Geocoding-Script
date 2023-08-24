@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         Simple Reverse Geocoding Script v8.1
+// @name         Simple Reverse Geocoding Script v8.2
 // @description  Simple reverse geocoding script for Geoguessr players. 
 // @namespace    geoguessr scripts 
 // @version      8.2
