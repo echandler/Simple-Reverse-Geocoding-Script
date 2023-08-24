@@ -2,7 +2,7 @@
 // @name         Simple Reverse Geocoding Script v8.1
 // @description  Simple reverse geocoding script for Geoguessr players. 
 // @namespace    geoguessr scripts 
-// @version      8.1 
+// @version      8.2
 // @author       echandler
 // @include      /^(https?)?(\:)?(\/\/)?([^\/]*\.)?geoguessr\.com($|\/.*)/
 // @downloadURL  https://github.com/echandler/Simple-Reverse-Geocoding-Script/raw/main/reverseGeocodingScript.user.js
@@ -22,7 +22,7 @@ if (window.GM_info){
 } else {
     window.GM_info = {
         script: {
-            version: "8.1"
+            version: "8.2"
         }
     };
     usw.sgs = {GM_info : window.GM_info};
