@@ -1,13 +1,14 @@
 // ==UserScript==
-// @name         Simple Reverse Geocoding Script v8.2
+// @name         Simple Reverse Geocoding Script v8.3
 // @description  Simple reverse geocoding script for Geoguessr players. 
 // @namespace    geoguessr scripts 
-// @version      8.2
+// @version      8.3
 // @author       echandler
 // @include      /^(https?)?(\:)?(\/\/)?([^\/]*\.)?geoguessr\.com($|\/.*)/
 // @downloadURL  https://github.com/echandler/Simple-Reverse-Geocoding-Script/raw/main/reverseGeocodingScript.user.js
 // ==/UserScript==
 
+(() => { 
 var usw = window;
 if (window.unsafeWindow){
     usw = unsafeWindow;
@@ -22,7 +23,7 @@ if (window.GM_info){
 } else {
     window.GM_info = {
         script: {
-            version: "8.2"
+            version: "8.3"
         }
     };
     usw.sgs = {GM_info : window.GM_info};
@@ -277,6 +278,7 @@ let _customBorders = null;
 
 function customBorders(rawBorders){
     let _x = rawBorders;
+    let t = null;
     usw.sgs.customBorders = eval("t="+_customBorders.replace(/\\n.*?'/g, "'").replace(/\\t.*?'/g, "'").replace(/\\n.*?}/g, "}"));
 }
 
@@ -520,3 +522,5 @@ async function init(){
 }
 
 init();
+
+})();
