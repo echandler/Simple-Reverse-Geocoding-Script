@@ -10,10 +10,12 @@
 
 (() => { 
 var usw = window;
-if (window.unsafeWindow){
-    usw = unsafeWindow;
-}
-debugger;
+try {
+    if (unsafeWindow){
+        usw = unsafeWindow;
+    }
+} catch {}
+
 let pending = [];
 
 usw.sgs = {};
