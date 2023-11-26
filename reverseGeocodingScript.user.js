@@ -13,7 +13,7 @@ var usw = window;
 if (window.unsafeWindow){
     usw = unsafeWindow;
 }
-
+debugger;
 let pending = [];
 
 usw.sgs = {};
